@@ -17,6 +17,7 @@ class MainActivity : ComponentActivity() {
                     composable("login") { LoginScreen(navController) }
                     composable("home") { HomePage(navController) }
                     composable("settings") { SettingScreen(navController) }
+                    composable("games") { GameScreen(navController)}
                 }
             }
         }
