@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
@@ -16,7 +17,9 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,7 +34,7 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 import retrofit2.Callback
 import retrofit2.Response
-
+//used a bit of ai and https://medium.com/@pritam.karmahapatra/retrofit-in-android-with-kotlin-9af9f66a54a8 to create the api call set up
 object RetrofitInstanceRAWG{
     private const val BASE_URL ="https://api.rawg.io/api/"
 
@@ -62,7 +65,7 @@ data class Game(
     val name: String,
     val released: String
 )
-private fun getGames() {
+private fun getGames(onResult: (List<Game>) -> Unit)  {
     val apiInterface = RetrofitInstanceRAWG.getInstance().create(ApiInterface::class.java)
     val call = apiInterface.getGames(
         apiKey = "97199ff1eb5c4a5eae165d148be56fbb",
@@ -80,6 +83,7 @@ private fun getGames() {
                     println(game.name)
                     println(game.released)
                 }
+                onResult(games)
             }
         }
 
@@ -92,7 +96,11 @@ private fun getGames() {
 fun GameScreen(navController: NavHostController) {
     var notificationsEnabled by remember { mutableStateOf(true) }
     var selectedTheme by remember { mutableStateOf("Default Light") }
-
+    var games = remember { mutableStateListOf<Game>() }
+    LaunchedEffect(Unit) {getGames { result ->
+        games.clear()
+        games.addAll(result)
+    }}
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -103,13 +111,16 @@ fun GameScreen(navController: NavHostController) {
             Text("Settings", style = MaterialTheme.typography.headlineMedium)
 
             Button(
-                onClick = {getGames() },
+                onClick = {println(games)},
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.large
             ) {
                 Text("get the games")
             }
+            games.forEach { game -> Text(text = game.name) }
+
 
         }
+
     }
 }
