@@ -129,6 +129,17 @@ fun SettingScreen(navController: NavHostController) {
                         Text("Back")
                     }
                 }
+                TextButton(
+                    onClick = {
+                        navController.navigate("home") {
+                            popUpTo("home") { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Return to Main Screen")
+                }
             }
         }
     }
