@@ -10,12 +10,13 @@ import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun LoginScreen(navController: NavController) {
+fun SignupScreen(navController: NavController) {
 
     val auth = remember { FirebaseAuth.getInstance() }
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
 
@@ -27,12 +28,7 @@ fun LoginScreen(navController: NavController) {
             verticalArrangement = Arrangement.Center
         ) {
 
-            Text("NXTDRP", style = MaterialTheme.typography.headlineLarge)
-            Spacer(Modifier.height(6.dp))
-            Text(
-                "Login with Firebase",
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Text("Create Account", style = MaterialTheme.typography.headlineLarge)
 
             Spacer(Modifier.height(24.dp))
 
@@ -55,6 +51,17 @@ fun LoginScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth()
             )
 
+            Spacer(Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it; error = null },
+                label = { Text("Confirm Password") },
+                singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth()
+            )
+
             if (error != null) {
                 Spacer(Modifier.height(10.dp))
                 Text(error!!, color = MaterialTheme.colorScheme.error)
@@ -65,14 +72,24 @@ fun LoginScreen(navController: NavController) {
             Button(
                 onClick = {
 
-                    if (email.isBlank() || password.isBlank()) {
-                        error = "Please enter email and password."
+                    if (email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
+                        error = "All fields are required."
+                        return@Button
+                    }
+
+                    if (password != confirmPassword) {
+                        error = "Passwords do not match."
+                        return@Button
+                    }
+
+                    if (password.length < 6) {
+                        error = "Password must be at least 6 characters."
                         return@Button
                     }
 
                     isLoading = true
 
-                    auth.signInWithEmailAndPassword(email, password)
+                    auth.createUserWithEmailAndPassword(email, password)
                         .addOnCompleteListener { task ->
                             isLoading = false
 
@@ -81,7 +98,7 @@ fun LoginScreen(navController: NavController) {
                                     popUpTo("login") { inclusive = true }
                                 }
                             } else {
-                                error = task.exception?.message ?: "Login failed."
+                                error = task.exception?.message ?: "Signup failed."
                             }
                         }
                 },
@@ -97,18 +114,19 @@ fun LoginScreen(navController: NavController) {
                         modifier = Modifier.size(22.dp)
                     )
                 } else {
-                    Text("Login")
+                    Text("Sign Up")
                 }
             }
+
             Spacer(Modifier.height(12.dp))
 
             TextButton(
                 onClick = {
-                    navController.navigate("signup")
+                    navController.popBackStack()
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Don't have an account? Sign Up")
+                Text("Already have an account? Login")
             }
         }
     }

@@ -6,9 +6,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun HomePage(navController: NavController) {
+
+    val auth = FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
+
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -16,6 +21,12 @@ fun HomePage(navController: NavController) {
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+
+            Text(
+                text = "Welcome ${currentUser?.email ?: ""}",
+                style = MaterialTheme.typography.titleMedium
+            )
+
             Text("Your Countdown Feed", style = MaterialTheme.typography.headlineMedium)
             Text(
                 "Demo items you’re excited for",
@@ -29,8 +40,12 @@ fun HomePage(navController: NavController) {
             Spacer(modifier = Modifier.weight(1f))
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+
                 OutlinedButton(
                     onClick = {
+                        // 🔥 Proper Firebase logout
+                        auth.signOut()
+
                         navController.navigate("login") {
                             popUpTo("home") { inclusive = true }
                         }
@@ -56,7 +71,6 @@ fun HomePage(navController: NavController) {
                 ) {
                     Text("Games")
                 }
-
             }
         }
     }

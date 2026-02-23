@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "529041815526",
+    "project_id": "nxtdrp",
+    "storage_bucket": "nxtdrp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:529041815526:android:857ffbb2797db28af20827",
+        "android_client_info": {
+          "package_name": "com.example.nxtdrp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZZrAht8uujrBv4REBfHpzBHaaBRRFpOU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:529041815526:android:32073bdcb14fec60f20827",
+        "android_client_info": {
+          "package_name": "nxtdrp.com"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZZrAht8uujrBv4REBfHpzBHaaBRRFpOU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:529041815526:android:f54274b9e3111458f20827",
+        "android_client_info": {
+          "package_name": "nzxtdrp.com"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZZrAht8uujrBv4REBfHpzBHaaBRRFpOU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
