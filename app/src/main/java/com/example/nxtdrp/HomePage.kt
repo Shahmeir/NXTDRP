@@ -71,6 +71,14 @@ fun HomePage(navController: NavController) {
                 ) {
                     Text("Games")
                 }
+
+                Button(
+                    onClick = { navController.navigate("music") },
+                    modifier = Modifier.weight(1f),
+                    shape = MaterialTheme.shapes.large
+                ) {
+                    Text("Music")
+                }
             }
         }
     }

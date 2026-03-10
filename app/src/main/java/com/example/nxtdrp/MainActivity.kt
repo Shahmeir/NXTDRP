@@ -52,6 +52,9 @@ class MainActivity : ComponentActivity() {
                     composable("signup") {
                         SignupScreen(navController)
                     }
+                    composable("music") {
+                        MusicScreen(navController)
+                    }
                 }
             }
         }

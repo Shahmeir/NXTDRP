@@ -1,25 +1,20 @@
 package com.example.nxtdrp
 
 import android.content.Context
-import android.icu.text.DateFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -30,89 +25,97 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.ui.autofill.ContentDataType.Companion.Date
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import com.google.android.gms.common.api.internal.ApiKey
+import okhttp3.Interceptor
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import retrofit2.Call
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.Query
 import retrofit2.Callback
 import retrofit2.Response
-import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.util.Locale
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.Query
 
-//used a bit of ai and https://medium.com/@pritam.karmahapatra/retrofit-in-android-with-kotlin-9af9f66a54a8 to create the api call set up
-object RetrofitInstanceRAWG{
-    private const val BASE_URL ="https://api.rawg.io/api/"
+
+//used the game page to set this up
+object RetrofitInstanceMBZ{
+    private const val BASE_URL ="https://musicbrainz.org/"
 
 
     fun getInstance(): Retrofit {
-        return Retrofit.Builder().baseUrl(BASE_URL)
+        return Retrofit.Builder().baseUrl(BASE_URL).client(okHttpClient().build())
             .addConverterFactory(GsonConverterFactory.create()).build()
     }
 }
-
-interface ApiInterfaceRAWG {
-
-    @GET("games")
-    fun getGames(
-        @Query("key") apiKey: String,
-        @Query("dates") dates: String,
-        @Query("page_size") pageSize: Int
-    ): Call<GameResponse>
+//used ai to help clean up this request i found from https://medium.com/@1550707241489/how-to-add-headers-to-retrofit-android-kotlin-450da34d3c3a
+private fun okHttpClient() = OkHttpClient().newBuilder()
+    .addInterceptor { chain ->
+        val request = chain.request().newBuilder()
+            .header("User-Agent", "NXTDRP hhh.heaslip@gmail.com")
+            .header("Accept", "application/json")
+            .build()
+        chain.proceed(request)
+    }
+interface ApiInterface {
+    @GET("ws/2/release")
+    fun getMusic(
+        @Query("query") dates: String,
+        @Query("fmt") format: String
+    ): Call<MusicResponce>
 }
-data class GameResponse(
-    val count: Int,
-    val next: String?,
-    val previous: String?,
-    val results: List<Game>
+data class MusicResponce(
+    val releases: List<Music>
 )
 
-data class Game(
-    val name: String,
-    val released: String
+data class Music(
+    val title: String,
+    val date: String
 )
-private fun getGames(onResult: (List<Game>) -> Unit)  {
+private fun getMusic(onResult: (List<Music>) -> Unit)  {
 
-    val ApiInterfaceRAWG = RetrofitInstanceRAWG.getInstance().create(ApiInterfaceRAWG::class.java)
-    val call = ApiInterfaceRAWG.getGames(
-        apiKey = "97199ff1eb5c4a5eae165d148be56fbb",
-        dates = "2026-02-01,2027-02-01",
-        pageSize = 50
+    val apiInterface = RetrofitInstanceMBZ.getInstance().create(ApiInterface::class.java)
+    val call = apiInterface.getMusic(
+        dates = "date:2026",
+        format = "json"
     )
 
-    call.enqueue(object : Callback<GameResponse> {
+    call.enqueue(object : Callback<MusicResponce> {
 
-        override fun onResponse(call: Call<GameResponse>, response: Response<GameResponse>) {
+        override fun onResponse(call: Call<MusicResponce>, response: Response<MusicResponce>) {
+            println(response)
+
             if (response.isSuccessful && response.body() != null) {
-                val games = response.body()!!.results  // this is your list
+                val games = response.body()!!.releases  // this is your list
 
                 for (game in games) {
-                    println(game.name)
-                    println(game.released)
+                    println(game.title)
+                    println(game.date)
                 }
                 onResult(games)
             }
+            else {
+                println(response)
+            }
         }
 
-        override fun onFailure(call: Call<GameResponse>, t: Throwable) {
-            println("there was a failure in the api call")
+        override fun onFailure(call: Call<MusicResponce>, t: Throwable) {
+            println("there was a failure in the music api call")
+            println(call.toString())
         }
     })
 }
 @Composable
-fun GameScreen(navController: NavHostController) {
+fun MusicScreen(navController: NavHostController) {
     var notificationsEnabled by remember { mutableStateOf(true) }
     var selectedTheme by remember { mutableStateOf("Default Light") }
-    var games = remember { mutableStateListOf<Game>() }
+    var games = remember { mutableStateListOf<Music>() }
     val state = rememberScrollState()
-    LaunchedEffect(Unit) {getGames ({ result ->
+    LaunchedEffect(Unit) {getMusic ({ result ->
         games.clear()
         games.addAll(result)
     })}
@@ -122,7 +125,7 @@ fun GameScreen(navController: NavHostController) {
                 .fillMaxSize()
                 .padding(20.dp)
                 .size(100.dp)
-            .verticalScroll(state),
+                .verticalScroll(state),
             verticalArrangement = Arrangement.spacedBy(16.dp)
 
         ) {
@@ -135,13 +138,15 @@ fun GameScreen(navController: NavHostController) {
                 Text("Back")
             }
             Button(
-                onClick = { fileReader(context, "games.txt")},
+                onClick = { fileReader2(context, "music.txt")},
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.large
             ) {
                 Text("get the games")
             }
-            games.forEach { game -> CountdownCard(game.name, "game", game.released) }
+            games.forEach { game -> CountdownCard(game.title, "music", game.date) }
+
+
 
 
         }
@@ -161,7 +166,7 @@ private fun CountdownCard(title: String, category: String, timeLeft: String) {
             Spacer(Modifier.height(8.dp))
             Text("Release date: $timeLeft", style = MaterialTheme.typography.titleMedium)
             Button(
-                onClick = { writeToFile(context, "games.txt", "$title{}$category{}$timeLeft") },
+                onClick = { writeToFile2(context, "music.txt", "$title{}$category{}$timeLeft") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
@@ -172,7 +177,7 @@ private fun CountdownCard(title: String, category: String, timeLeft: String) {
     }
 }
 
-fun writeToFile(context: Context, fileName: String, data: String) {
+fun writeToFile2(context: Context, fileName: String, data: String) {
     try {
         val read = context.openFileInput(fileName).bufferedReader().useLines { lines ->
             lines.joinToString("\n")
@@ -189,7 +194,7 @@ fun writeToFile(context: Context, fileName: String, data: String) {
         e.printStackTrace()
     }
 }
-fun readFromFile(context: Context, fileName: String): String {
+fun readFromFile2(context: Context, fileName: String): String {
     return try {
         context.openFileInput(fileName).bufferedReader().useLines { lines ->
             lines.joinToString("\n")
@@ -200,7 +205,7 @@ fun readFromFile(context: Context, fileName: String): String {
     }
 }
 
-fun fileReader(context: Context, fileName: String)
+fun fileReader2(context: Context, fileName: String)
 {
-    println(readFromFile(context, fileName))
+    println(readFromFile2(context, fileName))
 }
