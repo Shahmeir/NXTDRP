@@ -28,31 +28,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.google.android.gms.common.api.internal.ApiKey
-import okhttp3.Interceptor
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
-import retrofit2.http.Header
 import retrofit2.http.Query
 
-
-//used the game page to set this up
-object RetrofitInstanceMBZ{
-    private const val BASE_URL ="https://musicbrainz.org/"
-
+object RetrofitInstanceMBZ {
+    private const val BASE_URL = "https://musicbrainz.org/"
 
     fun getInstance(): Retrofit {
         return Retrofit.Builder().baseUrl(BASE_URL).client(okHttpClient().build())
             .addConverterFactory(GsonConverterFactory.create()).build()
     }
 }
-//used ai to help clean up this request i found from https://medium.com/@1550707241489/how-to-add-headers-to-retrofit-android-kotlin-450da34d3c3a
+
 private fun okHttpClient() = OkHttpClient().newBuilder()
     .addInterceptor { chain ->
         val request = chain.request().newBuilder()
@@ -61,6 +56,7 @@ private fun okHttpClient() = OkHttpClient().newBuilder()
             .build()
         chain.proceed(request)
     }
+
 interface ApiInterface {
     @GET("ws/2/release")
     fun getMusic(
@@ -68,6 +64,7 @@ interface ApiInterface {
         @Query("fmt") format: String
     ): Call<MusicResponce>
 }
+
 data class MusicResponce(
     val releases: List<Music>
 )
@@ -76,8 +73,8 @@ data class Music(
     val title: String,
     val date: String
 )
-private fun getMusic(onResult: (List<Music>) -> Unit)  {
 
+private fun getMusic(onResult: (List<Music>) -> Unit) {
     val apiInterface = RetrofitInstanceMBZ.getInstance().create(ApiInterface::class.java)
     val call = apiInterface.getMusic(
         dates = "date:2026",
@@ -85,20 +82,11 @@ private fun getMusic(onResult: (List<Music>) -> Unit)  {
     )
 
     call.enqueue(object : Callback<MusicResponce> {
-
         override fun onResponse(call: Call<MusicResponce>, response: Response<MusicResponce>) {
-            println(response)
-
             if (response.isSuccessful && response.body() != null) {
-                val games = response.body()!!.releases  // this is your list
-
-                for (game in games) {
-                    println(game.title)
-                    println(game.date)
-                }
-                onResult(games)
-            }
-            else {
+                val music = response.body()!!.releases
+                onResult(music)
+            } else {
                 println(response)
             }
         }
@@ -109,16 +97,45 @@ private fun getMusic(onResult: (List<Music>) -> Unit)  {
         }
     })
 }
+
+private fun saveMusicToFirestore(title: String, category: String, date: String) {
+    val auth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance()
+    val userId = auth.currentUser?.uid ?: return
+
+    val musicData = hashMapOf(
+        "title" to title,
+        "category" to category,
+        "date" to date
+    )
+
+    db.collection("users")
+        .document(userId)
+        .collection("savedItems")
+        .document("music")
+        .collection("items")
+        .document(title)
+        .set(musicData)
+        .addOnSuccessListener {
+            println("Music saved to Firestore: $title")
+        }
+        .addOnFailureListener { e ->
+            println("Error saving music: ${e.message}")
+        }
+}
+
 @Composable
 fun MusicScreen(navController: NavHostController) {
-    var notificationsEnabled by remember { mutableStateOf(true) }
-    var selectedTheme by remember { mutableStateOf("Default Light") }
-    var games = remember { mutableStateListOf<Music>() }
+    var music = remember { mutableStateListOf<Music>() }
     val state = rememberScrollState()
-    LaunchedEffect(Unit) {getMusic ({ result ->
-        games.clear()
-        games.addAll(result)
-    })}
+
+    LaunchedEffect(Unit) {
+        getMusic { result ->
+            music.clear()
+            music.addAll(result)
+        }
+    }
+
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -127,35 +144,27 @@ fun MusicScreen(navController: NavHostController) {
                 .size(100.dp)
                 .verticalScroll(state),
             verticalArrangement = Arrangement.spacedBy(16.dp)
-
         ) {
-            Text("Settings", style = MaterialTheme.typography.headlineMedium)
-            val context = LocalContext.current
+            Text("Music", style = MaterialTheme.typography.headlineMedium)
+
             TextButton(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Back")
             }
-            Button(
-                onClick = { fileReader2(context, "music.txt")},
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.large
-            ) {
-                Text("get the games")
+
+            music.forEach { item ->
+                MusicCountdownCard(item.title, "music", item.date)
             }
-            games.forEach { game -> CountdownCard(game.title, "music", game.date) }
-
-
-
-
         }
-
     }
 }
+
 @Composable
-private fun CountdownCard(title: String, category: String, timeLeft: String) {
-    val context = LocalContext.current  // <-- add this
+private fun MusicCountdownCard(title: String, category: String, timeLeft: String) {
+    var added by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large
@@ -166,46 +175,18 @@ private fun CountdownCard(title: String, category: String, timeLeft: String) {
             Spacer(Modifier.height(8.dp))
             Text("Release date: $timeLeft", style = MaterialTheme.typography.titleMedium)
             Button(
-                onClick = { writeToFile2(context, "music.txt", "$title{}$category{}$timeLeft") },
+                onClick = {
+                    saveMusicToFirestore(title, category, timeLeft)
+                    added = true
+                },
+                enabled = !added,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
                 shape = MaterialTheme.shapes.large
             ) {
-                Text("add to your page?")
-            }        }
-    }
-}
-
-fun writeToFile2(context: Context, fileName: String, data: String) {
-    try {
-        val read = context.openFileInput(fileName).bufferedReader().useLines { lines ->
-            lines.joinToString("\n")
-        }
-        if (read.contains(data))
-        {            println("the goat")}
-
-        else {
-            context.openFileOutput(fileName, Context.MODE_APPEND).use {
-                it.write(("\n$data").toByteArray())
+                Text(if (added) "Added!" else "Add to your page?")
             }
         }
-    } catch (e: Exception) {
-        e.printStackTrace()
     }
-}
-fun readFromFile2(context: Context, fileName: String): String {
-    return try {
-        context.openFileInput(fileName).bufferedReader().useLines { lines ->
-            lines.joinToString("\n")
-        }
-    } catch (e: Exception) {
-        e.printStackTrace()
-        "Error reading file"
-    }
-}
-
-fun fileReader2(context: Context, fileName: String)
-{
-    println(readFromFile2(context, fileName))
 }
