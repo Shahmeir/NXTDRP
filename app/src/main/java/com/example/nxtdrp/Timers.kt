@@ -1,8 +1,12 @@
 package com.example.nxtdrp
 
 import android.os.CountDownTimer
+import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
 
-class Timers {
+
     fun timer(Time: Long){
         object: CountDownTimer(Time, 1000) {
             var minute_holder: Long = -1;
@@ -36,4 +40,13 @@ class Timers {
             }
         }.start()
     }
-}
+    //https://www.baeldung.com/kotlin/split-string
+    //https://medium.com/@juricavoda/how-to-work-with-dates-and-time-in-kotlin-with-the-java-time-api-14767ed9c6f2
+    fun StringToMSFromNow(stringDate: String) : Long{
+        var listOfTime = stringDate.split('-')
+        var myEmptyList = mutableListOf<Int>()
+        listOfTime.forEach {myEmptyList.add(myEmptyList.size, it.toInt())}
+        val releaseDate = LocalDate.of(myEmptyList[0], myEmptyList[1], myEmptyList[2])
+        val now = LocalDate.now()
+        return Duration.between(now, releaseDate).toMillis()
+    }

@@ -459,4 +459,11 @@ private fun CountdownCard(
             }
         }
     }
+
+}
+
+private fun timerStarter(releaseDate: String)
+{
+    var msToRelease = StringToMSFromNow(releaseDate)
+    timer(msToRelease)
 }
