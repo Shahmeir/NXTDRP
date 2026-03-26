@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -247,10 +248,11 @@ fun HomePage(navController: NavController) {
                     SectionHeader(title = "Games")
 
                     savedGames.forEach { item ->
+                        var time = timerStarter(item.date)
                         CountdownCard(
                             title = item.title,
                             category = item.category,
-                            timeLeft = item.date,
+                            timeLeft = time,
                             accentColor = MaterialTheme.colorScheme.primary,
                             onRemove = { removeFromFirestore(item.title, "games") }
                         )
@@ -262,10 +264,11 @@ fun HomePage(navController: NavController) {
                     SectionHeader(title = "Music")
 
                     savedMusic.forEach { item ->
+                        var time = timerStarter(item.date)
                         CountdownCard(
                             title = item.title,
                             category = item.category,
-                            timeLeft = item.date,
+                            timeLeft = time,
                             accentColor = MaterialTheme.colorScheme.secondary,
                             onRemove = { removeFromFirestore(item.title, "music") }
                         )
@@ -333,8 +336,8 @@ private fun removeFromFirestore(title: String, collection: String) {
 @Composable
 private fun StatChip(
     label: String,
-    containerColor: androidx.compose.ui.graphics.Color,
-    contentColor: androidx.compose.ui.graphics.Color
+    containerColor: Color,
+    contentColor: Color
 ) {
     Surface(
         shape = RoundedCornerShape(20.dp),
@@ -398,7 +401,7 @@ private fun CountdownCard(
     title: String,
     category: String,
     timeLeft: String,
-    accentColor: androidx.compose.ui.graphics.Color,
+    accentColor: Color,
     onRemove: () -> Unit
 ) {
     Card(
@@ -462,8 +465,8 @@ private fun CountdownCard(
 
 }
 
-private fun timerStarter(releaseDate: String)
-{
+@Composable
+private fun timerStarter(releaseDate: String): String {
     var msToRelease = StringToMSFromNow(releaseDate)
-    timer(msToRelease)
+    return timer(msToRelease)
 }
