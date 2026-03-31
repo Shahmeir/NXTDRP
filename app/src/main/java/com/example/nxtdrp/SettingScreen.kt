@@ -38,7 +38,7 @@ fun SettingScreen(
     var selectedTheme by remember { mutableStateOf("Default Light") }
     var isLoading by remember { mutableStateOf(true) }
     var saveSuccess by remember { mutableStateOf(false) }
-    var notificationsEnabled by remember { mutableStateOf(true) }
+
 
     val scrollState = rememberScrollState()
 

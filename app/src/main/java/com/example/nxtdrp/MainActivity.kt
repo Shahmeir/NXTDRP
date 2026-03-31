@@ -12,7 +12,15 @@ import com.example.nxtdrp.ui.theme.NXTDRPTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+
 class MainActivity : ComponentActivity() {
+
+    private lateinit var auth: FirebaseAuth
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -26,24 +34,20 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        // Request notification permission for Android 13+
+
+        // 1. Initialize Firebase Auth
+        auth = FirebaseAuth.getInstance()
+
+        // 2. Request notification permission for Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
                 PackageManager.PERMISSION_GRANTED) {
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
-    
-    private lateinit var auth: FirebaseAuth
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        auth = FirebaseAuth.getInstance()
-
+        // 3. Set Content
         setContent {
-
             var currentTheme by remember { mutableStateOf("Default Light") }
 
             // Load theme from Firestore on startup
@@ -63,7 +67,6 @@ class MainActivity : ComponentActivity() {
             }
 
             NXTDRPTheme(themeName = currentTheme) {
-
                 val navController = rememberNavController()
 
                 val startDestination = if (auth.currentUser != null) {
@@ -76,35 +79,17 @@ class MainActivity : ComponentActivity() {
                     navController = navController,
                     startDestination = startDestination
                 ) {
-
-                    composable("login") {
-                        LoginScreen(navController)
-                    }
-
-                    composable("home") {
-                        HomePage(navController)
-                    }
-
+                    composable("login") { LoginScreen(navController) }
+                    composable("home") { HomePage(navController) }
                     composable("settings") {
                         SettingScreen(
                             navController = navController,
-                            onThemeChanged = { newTheme ->
-                                currentTheme = newTheme
-                            }
+                            onThemeChanged = { newTheme -> currentTheme = newTheme }
                         )
                     }
-
-                    composable("games") {
-                        GameScreen(navController)
-                    }
-
-                    composable("signup") {
-                        SignupScreen(navController)
-                    }
-
-                    composable("music") {
-                        MusicScreen(navController)
-                    }
+                    composable("games") { GameScreen(navController) }
+                    composable("signup") { SignupScreen(navController) }
+                    composable("music") { MusicScreen(navController) }
                 }
             }
         }
