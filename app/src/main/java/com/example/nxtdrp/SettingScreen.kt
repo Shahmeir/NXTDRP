@@ -22,6 +22,7 @@ import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.messaging.FirebaseMessaging
 
 @Composable
 fun SettingScreen(
@@ -37,8 +38,23 @@ fun SettingScreen(
     var selectedTheme by remember { mutableStateOf("Default Light") }
     var isLoading by remember { mutableStateOf(true) }
     var saveSuccess by remember { mutableStateOf(false) }
+    var notificationsEnabled by remember { mutableStateOf(true) }
 
     val scrollState = rememberScrollState()
+
+    Button(
+        onClick = {
+            if (notificationsEnabled) {
+                FirebaseMessaging.getInstance().subscribeToTopic("releases")
+            } else {
+                FirebaseMessaging.getInstance().unsubscribeFromTopic("releases")
+            }
+            // Save to Firestore...
+        },
+        // ... button config ...
+    ) {
+        Text(if (notificationsEnabled) "Enable Notifications" else "Disable Notifications")
+    }
 
     LaunchedEffect(Unit) {
         if (userId != null) {
