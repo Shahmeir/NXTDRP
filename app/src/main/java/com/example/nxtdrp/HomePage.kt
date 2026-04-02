@@ -200,6 +200,9 @@ fun HomePage(navController: NavController) {
                             containerColor = MaterialTheme.colorScheme.secondary
                         )
                     )
+                    Button(
+                        onClick = { getNowForMusic() }
+                    ) { }
                 }
 
                 Row(

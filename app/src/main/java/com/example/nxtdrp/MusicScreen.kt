@@ -77,7 +77,7 @@ data class Music(
 private fun getMusic(onResult: (List<Music>) -> Unit) {
     val apiInterface = RetrofitInstanceMBZ.getInstance().create(ApiInterface::class.java)
     val call = apiInterface.getMusic(
-        dates = "date:2026",
+        dates = "date:[${getNowForMusic()}]",
         format = "json"
     )
 
@@ -85,9 +85,13 @@ private fun getMusic(onResult: (List<Music>) -> Unit) {
         override fun onResponse(call: Call<MusicResponce>, response: Response<MusicResponce>) {
             if (response.isSuccessful && response.body() != null) {
                 val music = response.body()!!.releases
+                println("stuff wourks")
+
+                println("stuff wourks")
                 onResult(music)
             } else {
                 println(response)
+
             }
         }
 

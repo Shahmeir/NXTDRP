@@ -1,6 +1,5 @@
 package com.example.nxtdrp
 
-import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -25,7 +24,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
@@ -46,7 +44,7 @@ object RetrofitInstanceRAWG {
             .addConverterFactory(GsonConverterFactory.create()).build()
     }
 }
-
+public var now = getTimeForRAWG()
 interface ApiInterfaceRAWG {
     @GET("games")
     fun getGames(
@@ -72,7 +70,7 @@ private fun getGames(onResult: (List<Game>) -> Unit) {
     val apiInterface = RetrofitInstanceRAWG.getInstance().create(ApiInterfaceRAWG::class.java)
     val call = apiInterface.getGames(
         apiKey = "97199ff1eb5c4a5eae165d148be56fbb",
-        dates = "2026-02-01,2027-02-01",
+        dates = getTimeForRAWG(),
         pageSize = 50
     )
 
