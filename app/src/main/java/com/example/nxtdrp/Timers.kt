@@ -69,6 +69,28 @@ import java.time.LocalTime
         return ChronoUnit.MILLIS.between(now.atStartOfDay(), releaseDate.atStartOfDay())
     }
 
+fun StringToDateTime(stringDate: String = "") : LocalDate? {
+    var releaseDate = LocalDate.of(0,1,1)
+    //ai assisted
+    val listOfTime = stringDate.split('-').mapNotNull { it.toIntOrNull() }//        println(listOfTime)
+    val myEmptyList = mutableListOf<Int>()
+    listOfTime.forEach {myEmptyList.add(myEmptyList.size, it.toInt())}
+//        println(listOfTime)
+    if (listOfTime.size == 3) {
+        releaseDate = LocalDate.of(myEmptyList[0], myEmptyList[1], myEmptyList[2])
+    }
+    else if (listOfTime.size == 2) {
+        releaseDate = LocalDate.of(myEmptyList[0], myEmptyList[1], 1)
+    }
+    else if (listOfTime.size == 1) {
+        releaseDate = LocalDate.of(myEmptyList[0], 1, 1)
+    }
+//        println(releaseDate)
+    return LocalDate.now()
+    //ai assisted here
+
+}
+
 fun IsPast(stringDate: String = ""): Boolean {
     var mils = StringToMSFromNow(stringDate)
     if (mils < 0)

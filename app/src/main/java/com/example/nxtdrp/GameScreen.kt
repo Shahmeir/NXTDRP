@@ -35,6 +35,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
+import java.time.LocalDate
 
 object RetrofitInstanceRAWG {
     private const val BASE_URL = "https://api.rawg.io/api/"
@@ -44,7 +45,7 @@ object RetrofitInstanceRAWG {
             .addConverterFactory(GsonConverterFactory.create()).build()
     }
 }
-public var now = getTimeForRAWG()
+public var now: LocalDate? = getTimeForRAWG()
 interface ApiInterfaceRAWG {
     @GET("games")
     fun getGames(
