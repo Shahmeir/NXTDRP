@@ -45,7 +45,6 @@ object RetrofitInstanceRAWG {
             .addConverterFactory(GsonConverterFactory.create()).build()
     }
 }
-public var now: LocalDate? = getTimeForRAWG()
 interface ApiInterfaceRAWG {
     @GET("games")
     fun getGames(
