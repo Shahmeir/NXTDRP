@@ -1,2 +1,4 @@
 # NXTDRP
-This is the notification app
+This is the notification app!
+
+Check master branch!
